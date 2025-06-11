@@ -1,0 +1,42 @@
+[
+  {
+    "question": "Quelle est la capitale de l'Australie ?",
+    "answer": "Canberra"
+  },
+  {
+    "question": "Qui a peint la Joconde ?",
+    "answer": "Léonard de Vinci"
+  },
+  {
+    "question": "Quel est l'élément chimique dont le symbole est O ?",
+    "answer": "Oxygène"
+  },
+  {
+    "question": "En quelle année l'homme a-t-il marché sur la Lune pour la première fois ?",
+    "answer": "1969"
+  },
+  {
+    "question": "Quel est le plus long fleuve du monde ?",
+    "answer": "L'Amazone"
+  },
+  {
+    "question": "Qui a écrit 'Les Misérables' ?",
+    "answer": "Victor Hugo"
+  },
+  {
+    "question": "Quelle planète est la plus proche du Soleil ?",
+    "answer": "Mercure"
+  },
+  {
+    "question": "Combien de côtés a un hexagone ?",
+    "answer": "6"
+  },
+  {
+    "question": "Quel est le nom de l'agence spatiale américaine ?",
+    "answer": "NASA"
+  },
+  {
+    "question": "Qui a réalisé le film 'Pulp Fiction' ?",
+    "answer": "Quentin Tarantino"
+  }
+]
