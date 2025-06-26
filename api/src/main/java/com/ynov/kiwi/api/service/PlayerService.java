@@ -47,7 +47,15 @@ public class PlayerService {
 
     public Integer getPlayerInControl() { return playerInControl; }
     public boolean isGameStarted() { return gameStarted; }
-    public void startGame() { this.gameStarted = true; }
+    public boolean startGame() {
+        if (getPlayers().size() < 2) {
+            System.out.println("[Game] Impossible de démarrer : il faut au moins 2 joueurs !");
+            return false;
+        }
+        this.gameStarted = true;
+        return true;
+    }
+
     public void stopGame() { this.gameStarted = false; playerInControl = null; resetBuzzers(); }
     public void reset() { stopGame(); repo.clear(); }
 }
