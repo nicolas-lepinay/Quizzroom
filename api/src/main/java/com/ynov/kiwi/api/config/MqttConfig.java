@@ -21,13 +21,18 @@ public class MqttConfig {
     @Value("${mqtt.topic.buzz}")
     private String buzzTopic;
 
-    @Value("${mqtt.topic.state}")
-    private String stateTopic;
+    @Value("${mqtt.topic.enable}")
+    private String enableTopic;
+
+    @Value("${mqtt.topic.disable}")
+    private String disableTopic;
 
     public String getBrokerUrl() { return brokerUrl; }
     public String getUsername() { return username; }
     public String getPassword() { return password; }
     public String getSignupTopic() { return signupTopic; }
     public String getBuzzTopic() { return buzzTopic; }
-    public String getStateTopic() { return stateTopic; }
+    public String getEnableTopic() { return enableTopic; }
+    public String getDisableTopic() { return disableTopic; }
+
 }

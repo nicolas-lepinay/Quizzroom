@@ -3,6 +3,7 @@ package com.ynov.kiwi.api.service;
 import com.ynov.kiwi.api.config.MqttConfig;
 import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import jakarta.annotation.PostConstruct;
 
@@ -12,7 +13,7 @@ public class MqttService {
     private final MqttConfig mqttConfig;
     private MqttClient client;
 
-    public MqttService(PlayerService playerService, MqttConfig mqttConfig) {
+    public MqttService(@Lazy PlayerService playerService, MqttConfig mqttConfig) {
         this.playerService = playerService;
         this.mqttConfig = mqttConfig;
     }
@@ -44,4 +45,23 @@ public class MqttService {
             System.out.println(ok ? "[MQTT] Joueur #" + id + " a la main !" : "[MQTT] Buzz ignoré.");
         });
     }
+
+    public void publishEnable(int playerId) {
+        try {
+            client.publish(mqttConfig.getEnableTopic(), new MqttMessage(String.valueOf(playerId).getBytes()));
+            System.out.println("[MQTT] ACTIVATION du buzzer #" + playerId);
+        } catch (Exception e) {
+            System.err.println("Erreur publish ENABLE: " + e.getMessage());
+        }
+    }
+
+    public void publishDisable(int playerId) {
+        try {
+            client.publish(mqttConfig.getDisableTopic(), new MqttMessage(String.valueOf(playerId).getBytes()));
+            System.out.println("[MQTT] DÉSACTIVATION du buzzer #" + playerId);
+        } catch (Exception e) {
+            System.err.println("Erreur publish DISABLE: " + e.getMessage());
+        }
+    }
+
 }

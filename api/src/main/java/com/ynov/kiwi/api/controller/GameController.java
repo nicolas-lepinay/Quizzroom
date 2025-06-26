@@ -1,4 +1,5 @@
 package com.ynov.kiwi.api.controller;
+import com.ynov.kiwi.api.entity.Question;
 import com.ynov.kiwi.api.response.ApiResponse;
 import com.ynov.kiwi.api.response.ResponseUtil;
 import com.ynov.kiwi.api.service.GameService;
@@ -19,7 +20,7 @@ public class GameController {
 
     @GetMapping("/state")
     public ResponseEntity<ApiResponse<String>> getGameState() {
-        String state = playerService.isGameStarted() ? "en cours" : "en attente";
+        String state = playerService.isGameStarted() ? "started" : "waiting";
         return ResponseEntity.ok(ResponseUtil.success("Etat de la partie récupéré.", state));
     }
 
@@ -40,15 +41,28 @@ public class GameController {
         return ResponseEntity.ok(ResponseUtil.success("Partie arrêtée.", null));
     }
 
-    @PutMapping("/question/{id}")
-    public ResponseEntity<ApiResponse<String>> setCurrentQuestion(@PathVariable int id) {
-        gameService.setCurrentQuestion(id);
-        return ResponseEntity.ok(ResponseUtil.success("Question actuelle changée.", String.valueOf(id)));
+    @GetMapping("/current-question")
+    public ResponseEntity<ApiResponse<Question>> getCurrentQuestion() {
+        Question current = gameService.getCurrentQuestion();
+        if (current == null)
+            return ResponseEntity.status(404).body(ResponseUtil.error("Aucune question disponible.", 404));
+        return ResponseEntity.ok(ResponseUtil.success("Question actuelle récupérée.", current));
     }
 
-    @GetMapping("/question")
-    public ResponseEntity<ApiResponse<Integer>> getCurrentQuestion() {
-        return ResponseEntity.ok(ResponseUtil.success("Question actuelle récupérée.", gameService.getCurrentQuestion()));
+    @PostMapping("/next-question")
+    public ResponseEntity<ApiResponse<Question>> nextQuestion() {
+        boolean ok = gameService.nextQuestion();
+        playerService.resetBuzzers();
+        if (!ok)
+            return ResponseEntity.badRequest().body(ResponseUtil.error("Fin de la liste des questions.", 400));
+        return ResponseEntity.ok(ResponseUtil.success("Nouvelle question, buzzers réinitialisés.", gameService.getCurrentQuestion()));
+    }
+
+    @PostMapping("/reset-questions")
+    public ResponseEntity<ApiResponse<Question>> resetQuestions() {
+        gameService.resetQuestions();
+        playerService.resetBuzzers();
+        return ResponseEntity.ok(ResponseUtil.success("Première question sélectionnée.", gameService.getCurrentQuestion()));
     }
 }
 

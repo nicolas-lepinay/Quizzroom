@@ -19,6 +19,9 @@ public class BuzzerApp {
     public void createAndShowGUI() throws MqttException {
         mqttService = new MQTTService();
 
+        // Abonnements MQTT à enable/disable
+        subscribeToEnableDisable();
+
         JFrame frame = new JFrame("Quizz Room");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(500, 500);
@@ -86,7 +89,7 @@ public class BuzzerApp {
                 readyLatch.countDown();
                 try { readyLatch.await(); } catch (InterruptedException ignored) {}
                 try { startLatch.await(); } catch (InterruptedException ignored) {}
-                sendBuzz(new Buzzer(panel.buzzerId));
+                sendBuzz(new Buzzer(panel.getBuzzer().getId()));
             }).start();
         }
         // Quand tous sont prêts, GO
@@ -101,6 +104,50 @@ public class BuzzerApp {
                 .map(b -> (BuzzerPanel) buzzersPanel.getComponent(b.getId() - 1))
                 .filter(BuzzerPanel::isSelected)
                 .collect(Collectors.toList());
+    }
+
+    private void subscribeToEnableDisable() {
+        try {
+            String enableTopic = Config.get("mqtt.topic.enable");
+            String disableTopic = Config.get("mqtt.topic.disable");
+
+            mqttService.subscribe(enableTopic, (topic, msg) -> {
+                int id = Integer.parseInt(new String(msg.getPayload()));
+                // Mettre à jour le buzzer concerné (enabled = true)
+                manager.getBuzzerById(id).ifPresent(buzzer -> {
+                    // Met à jour l'état interne
+                    buzzer.setEnabled(true);
+                    // Met à jour l'affichage Swing (sur l'EDT)
+                    SwingUtilities.invokeLater(() -> {
+                        BuzzerPanel panel = getPanelByBuzzerId(id);
+                        if (panel != null) panel.setBuzzerEnabled(true);
+                    });
+                });
+            });
+
+            mqttService.subscribe(disableTopic, (topic, msg) -> {
+                int id = Integer.parseInt(new String(msg.getPayload()));
+                // Mettre à jour le buzzer concerné (enabled = false)
+                manager.getBuzzerById(id).ifPresent(buzzer -> {
+                    buzzer.setEnabled(false);
+                    SwingUtilities.invokeLater(() -> {
+                        BuzzerPanel panel = getPanelByBuzzerId(id);
+                        if (panel != null) panel.setBuzzerEnabled(false);
+                    });
+                });
+            });
+        } catch (MqttException e) {
+            JOptionPane.showMessageDialog(null, "Erreur abonnement MQTT : " + e.getMessage());
+        }
+    }
+
+    private BuzzerPanel getPanelByBuzzerId(int id) {
+        for (Component comp : buzzersPanel.getComponents()) {
+            if (comp instanceof BuzzerPanel panel && panel.getBuzzer().getId() == id) {
+                return panel;
+            }
+        }
+        return null;
     }
 
     public static void main(String[] args) throws MqttException {

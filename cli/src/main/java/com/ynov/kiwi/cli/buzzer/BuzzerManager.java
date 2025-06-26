@@ -4,9 +4,10 @@ import java.util.*;
 
 public class BuzzerManager {
     private final List<Buzzer> buzzers = new ArrayList<>();
+    private int nextId = 1;
 
     public Buzzer addBuzzer() {
-        Buzzer b = new Buzzer(buzzers.size() + 1);
+        Buzzer b = new Buzzer(nextId++);
         buzzers.add(b);
         return b;
     }

@@ -2,21 +2,25 @@ package com.ynov.kiwi.api.repository;
 
 import com.ynov.kiwi.api.entity.Question;
 import org.springframework.stereotype.Repository;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 @Repository
 public class QuestionRepository {
-    private final Map<Integer, Question> questions = new ConcurrentHashMap<>();
-    private final AtomicInteger nextId = new AtomicInteger(1);
+    private final List<Question> questions = new ArrayList<>();
 
-    public Question save(Question q) {
-        if (q.getId() == 0) q.setId(nextId.getAndIncrement());
-        questions.put(q.getId(), q);
-        return q;
+    public List<Question> findAll() {
+        return questions;
     }
-    public Optional<Question> findById(int id) { return Optional.ofNullable(questions.get(id)); }
-    public Collection<Question> findAll() { return questions.values(); }
-    public void clear() { questions.clear(); nextId.set(1); }
+
+    public Optional<Question> findById(int id) {
+        return questions.stream().filter(q -> q.getId() == id).findFirst();
+    }
+
+    public void saveAll(List<Question> list) {
+        questions.clear();
+        questions.addAll(list);
+    }
 }
