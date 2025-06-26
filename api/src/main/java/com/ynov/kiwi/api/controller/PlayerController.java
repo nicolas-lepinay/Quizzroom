@@ -7,6 +7,8 @@ import com.ynov.kiwi.api.service.PlayerService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.Collection;
+import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/players")
@@ -37,12 +39,15 @@ public class PlayerController {
         return ResponseEntity.ok(ResponseUtil.success("Point ajouté au joueur #" + id, updated));
     }
 
-    @GetMapping("/in-control")
-    public ResponseEntity<ApiResponse<Object>> playerInControl() {
-        Integer id = service.getPlayerInControl();
-        if (id == null)
-            return ResponseEntity.ok(ResponseUtil.success("Aucun joueur n’a la main.", null));
-        return ResponseEntity.ok(ResponseUtil.success("Joueur ayant la main.", id));
+    @PutMapping("/{id}/name")
+    public ResponseEntity<ApiResponse<Player>> updatePlayerName(@PathVariable int id, @RequestBody Map<String, String> payload) {
+        String name = payload.get("name");
+        System.out.println("ID: " + id + " / Name: " + name);
+        Optional<Player> opt = service.getPlayer(id);
+        if (opt.isEmpty()) return ResponseEntity.status(404).body(ResponseUtil.error("Joueur non trouvé", 404));
+        Player player = opt.get();
+        player.setGivenName(name);
+        return ResponseEntity.ok(ResponseUtil.success("Nom mis à jour", player));
     }
 
     @GetMapping("/enabled")

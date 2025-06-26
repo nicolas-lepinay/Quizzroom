@@ -24,6 +24,12 @@ public class GameController {
         return ResponseEntity.ok(ResponseUtil.success("Etat de la partie récupéré.", state));
     }
 
+    @GetMapping("/answer-time")
+    public ResponseEntity<ApiResponse<Integer>> getAnswerTime() {
+        Integer time = playerService.getAnswerTime();
+        return ResponseEntity.ok(ResponseUtil.success("Temps de réponse récupéré.", time));
+    }
+
     @PostMapping("/start")
     public ResponseEntity<ApiResponse<String>> startGame() {
         boolean started = playerService.startGame();

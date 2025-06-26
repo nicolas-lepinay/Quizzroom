@@ -1,8 +1,8 @@
 package com.ynov.kiwi.api.service;
 
+import com.ynov.kiwi.api.controller.SseController;
 import com.ynov.kiwi.api.entity.Player;
 import com.ynov.kiwi.api.repository.PlayerRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -14,26 +14,34 @@ import java.util.concurrent.TimeUnit;
 public class PlayerService {
     private final PlayerRepository repo;
     private final MqttService mqttService;
-    private volatile Integer playerInControl = null;
-    private volatile long inControlSince = 0;
+    private final SseController sseController;
+
     private volatile boolean gameStarted = false;
-    private final Integer controlTime = 10000;
+    private final Integer answerTime = 7000;
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
-    @Autowired // Peut-être omis car 1 seul constructeur...
-    public PlayerService(PlayerRepository repo, MqttService mqttService) {
+    public PlayerService(
+            PlayerRepository repo,
+            MqttService mqttService,
+            SseController sseController
+    ) {
         this.repo = repo;
         this.mqttService = mqttService;
+        this.sseController = sseController;
     }
 
     public boolean addPlayer(int id) {
         if (gameStarted || repo.existsById(id)) return false;
         repo.save(new Player(id));
+        sseController.sendPlayerUpdate(); // Sends update to front-end
         return true;
     }
     public Optional<Player> getPlayer(int id) { return repo.findById(id); }
     public Collection<Player> getPlayers() { return repo.findAll(); }
-    public void addPoint(int id) { getPlayer(id).ifPresent(Player::addPoint); }
+    public void addPoint(int id) {
+        getPlayer(id).ifPresent(Player::addPoint);
+        sseController.sendPlayerUpdate(); // Sends update to front-end
+    }
 
     public boolean processBuzz(int playerId) {
         Player player = getPlayer(playerId).orElse(null);
@@ -45,40 +53,40 @@ public class PlayerService {
             p.setEnabled(false);
             mqttService.publishDisable(p.getId());
         }
-        playerInControl = playerId;
-        inControlSince = System.currentTimeMillis();
-
         // Le joueur a répondu :
+        player.setInControl(true);
         player.setHasAttempted(true);
+        sseController.sendPlayerUpdate(); // Sends update to front-end
 
-        scheduler.schedule(() -> endTurn(), controlTime, TimeUnit.MILLISECONDS);
+        scheduler.schedule(() -> endTurn(player.getId()), answerTime, TimeUnit.MILLISECONDS);
         return true;
     }
 
-    private void endTurn() {
+    private void endTurn(int playerId) {
         // On réactive seulement les joueurs qui n'ont pas encore tenté
         for (Player p : repo.findAll()) {
-            if (!p.hasAttempted()) {
+            p.setInControl(false);
+            if (p.getId() != playerId) {
                 p.setEnabled(true);
                 mqttService.publishEnable(p.getId());
             }
         }
-        playerInControl = null;
-        inControlSince = 0;
+        sseController.sendPlayerUpdate(); // Sends update to front-end
     }
 
     public void resetBuzzers() {
         for (Player p : repo.findAll()) {
             p.setHasAttempted(false);
             p.setEnabled(true);
+            p.setInControl(false);
             mqttService.publishEnable(p.getId());
         }
-        playerInControl = null;
-        inControlSince = 0;
+        sseController.sendPlayerUpdate(); // Sends update to front-end
     }
 
-    public Integer getPlayerInControl() { return playerInControl; }
-    public boolean isGameStarted() { return gameStarted; }
+    public boolean isGameStarted() {
+        return gameStarted;
+    }
     public boolean startGame() {
         if (getPlayers().size() < 2) {
             System.out.println("[Game] Impossible de démarrer : il faut au moins 2 joueurs !");
@@ -88,7 +96,16 @@ public class PlayerService {
         return true;
     }
 
-    public void stopGame() { this.gameStarted = false; playerInControl = null; resetBuzzers(); }
-    public void reset() { stopGame(); repo.clear(); }
+    public void stopGame() {
+        this.gameStarted = false;
+        resetBuzzers(); }
+
+    public Integer getAnswerTime() {
+        return answerTime;
+    }
+    public void reset() {
+        stopGame();
+        repo.clear();
+    }
 }
 
