@@ -15,6 +15,7 @@ public class PlayerService {
     private volatile Integer playerInControl = null;
     private volatile long inControlSince = 0;
     private volatile boolean gameStarted = false;
+    private final Integer controlTime = 5000;
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
     public PlayerService(PlayerRepository repo) { this.repo = repo; }
@@ -30,13 +31,13 @@ public class PlayerService {
 
     public boolean processBuzz(int playerId) {
         if (!gameStarted) return false;
-        if (playerInControl != null && System.currentTimeMillis() - inControlSince < 5000)
+        if (playerInControl != null && System.currentTimeMillis() - inControlSince < controlTime)
             return false;
         if (!repo.existsById(playerId)) return false;
         playerInControl = playerId;
         inControlSince = System.currentTimeMillis();
         repo.findAll().forEach(p -> p.setEnabled(p.getId() == playerId));
-        scheduler.schedule(this::resetBuzzers, 5, TimeUnit.SECONDS);
+        scheduler.schedule(this::resetBuzzers, controlTime, TimeUnit.MILLISECONDS);
         return true;
     }
     private void resetBuzzers() {
