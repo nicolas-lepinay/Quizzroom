@@ -15,24 +15,18 @@ export function useSSE(url: string, eventName: string, onMessage: () => void) {
     try {
       eventSourceRef.current = new EventSource(url)
       eventSourceRef.current.addEventListener(eventName, (event) => {
-        try {
-          //const data = JSON.parse(event.data)
-          onMessage()
-        } catch (error) {
-          console.error("Error parsing SSE data:", error)
-          onMessage()
-        }
+        onMessage()
       })
 
       eventSourceRef.current.addEventListener("open", () => {
-        console.log("SSE connection opened")
+        console.log("[SSE] Connection opened : " + url)
       })
 
       eventSourceRef.current.onerror = (error) => {
-        console.warn("SSE connection error (this is normal if API is not running):", error)
+        console.warn("[SSE] Connection error (this is normal if API is not running): ", error)
       }
     } catch (error) {
-      console.warn("Failed to create SSE connection:", error)
+      console.warn("Failed to create SSE connection: ", error)
     }
 
     return () => {

@@ -2,19 +2,6 @@ import type { PlayersResponse, ApiResponse, QuestionResponse } from "@/types/gam
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
 
-// Mock data for development when API is not available
-const mockPlayers = [
-  { id: 1, score: 0, enabled: true, hasAttempted: false, inControl: false },
-  { id: 2, score: 0, enabled: true, hasAttempted: false, inControl: false },
-  { id: 3, score: 0, enabled: true, hasAttempted: false, inControl: false },
-]
-
-const mockQuestion = {
-  id: 1,
-  text: "What is the capital city of France?",
-  answer: "Paris",
-}
-
 export const api = {
   async getPlayers(): Promise<PlayersResponse> {
     try {
@@ -26,19 +13,13 @@ export const api = {
       })
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        throw new Error(`HTTP error. Status: ${response.status}`)
       }
 
       return await response.json()
     } catch (error) {
-      console.warn("API not available, using mock data:", error)
-      // Return mock data when API is not available
-      return {
-        status: "success",
-        code: 200,
-        message: "Mock data - API not available",
-        data: mockPlayers,
-      }
+      console.error("API not available: ", error)
+      throw new Error("API not available.")
     }
   },
 
@@ -52,18 +33,13 @@ export const api = {
       })
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        throw new Error(`HTTP error. Status: ${response.status}`)
       }
 
       return await response.json()
     } catch (error) {
-      console.warn("API not available, using mock response:", error)
-      return {
-        status: "success",
-        code: 200,
-        message: "Mock game start - API not available",
-        data: {},
-      }
+      console.error("API not available: ", error)
+      throw new Error("API not available.")
     }
   },
 
@@ -77,18 +53,13 @@ export const api = {
       })
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        throw new Error(`HTTP error. Status: ${response.status}`)
       }
 
       return await response.json()
     } catch (error) {
-      console.warn("API not available, using mock question:", error)
-      return {
-        status: "success",
-        code: 200,
-        message: "Mock question - API not available",
-        data: mockQuestion,
-      }
+      console.error("API not available: ", error)
+      throw new Error("API not available.")
     }
   },
 
@@ -102,23 +73,13 @@ export const api = {
       })
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        throw new Error(`HTTP error. Status: ${response.status}`)
       }
 
       return await response.json()
     } catch (error) {
-      console.warn("API not available, using mock question:", error)
-      return {
-        status: "success",
-        code: 200,
-        message: "Mock next question - API not available",
-        data: {
-          ...mockQuestion,
-          id: mockQuestion.id + 1,
-          text: "What is the capital city of the USA?",
-          answer: "Washington",
-        },
-      }
+      console.error("API not available: ", error)
+      throw new Error("API not available.")
     }
   },
 
@@ -132,18 +93,13 @@ export const api = {
       })
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        throw new Error(`HTTP error. Status: ${response.status}`)
       }
 
       return await response.json()
     } catch (error) {
-      console.warn("API not available, using mock response:", error)
-      return {
-        status: "success",
-        code: 200,
-        message: "Mock score update - API not available",
-        data: {},
-      }
+      console.error("API not available: ", error)
+      throw new Error("API not available.")
     }
   },
 
@@ -158,18 +114,13 @@ export const api = {
       })
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        throw new Error(`HTTP error. Status: ${response.status}`)
       }
 
       return await response.json()
     } catch (error) {
-      console.warn("API not available, using mock response:", error)
-      return {
-        status: "success",
-        code: 200,
-        message: "Mock name update - API not available",
-        data: {},
-      }
+      console.warn("API not available: ", error)
+      throw new Error("API not available.")
     }
   },
 }
