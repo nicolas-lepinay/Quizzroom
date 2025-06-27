@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class PlayerService {
     private final PlayerRepository repo;
-    private final MqttService mqttService;
+    //private final MqttService mqttService;
     private final SseController sseController;
 
     private volatile boolean gameStarted = false;
@@ -22,11 +22,11 @@ public class PlayerService {
 
     public PlayerService(
             PlayerRepository repo,
-            MqttService mqttService,
+            //MqttService mqttService,
             SseController sseController
     ) {
         this.repo = repo;
-        this.mqttService = mqttService;
+        //this.mqttService = mqttService;
         this.sseController = sseController;
     }
 
@@ -51,7 +51,8 @@ public class PlayerService {
         // Désactive tous les buzzers
         for (Player p : repo.findAll()) {
             p.setEnabled(false);
-            mqttService.publishDisable(p.getId());
+            //mqttService.publishDisable(p.getId());
+            sseController.sendDisable(p.getId());
         }
         // Le joueur a répondu :
         player.setInControl(true);
@@ -68,7 +69,8 @@ public class PlayerService {
             p.setInControl(false);
             if (p.getId() != playerId) {
                 p.setEnabled(true);
-                mqttService.publishEnable(p.getId());
+                //mqttService.publishEnable(p.getId());
+                sseController.sendEnable(p.getId());
             }
         }
         sseController.sendPlayerUpdate(); // Sends update to front-end
@@ -79,7 +81,8 @@ public class PlayerService {
             //p.setHasAttempted(false);
             p.setEnabled(true);
             p.setInControl(false);
-            mqttService.publishEnable(p.getId());
+            //mqttService.publishEnable(p.getId());
+            sseController.sendEnable(p.getId());
         }
         sseController.sendPlayerUpdate(); // Sends update to front-end
     }
@@ -98,14 +101,12 @@ public class PlayerService {
 
     public void stopGame() {
         this.gameStarted = false;
-        resetBuzzers(); }
+        repo.clear();
+        System.out.println("[Game] Partie arrêtée.");
+    }
 
     public Integer getAnswerTime() {
         return answerTime;
-    }
-    public void reset() {
-        stopGame();
-        repo.clear();
     }
 }
 

@@ -98,7 +98,7 @@ export function Lobby({ onStartGame }: LobbyProps) {
 
         <div className="text-center mb-8">
           <h2 className="text-3xl font-semibold mb-4">Lobby Room</h2>
-          <p className="text-xl">En attente d'autres joueurs..</p>
+          <p className="text-md">En attente d'autres joueurs...</p>
         </div>
 
         {error && (

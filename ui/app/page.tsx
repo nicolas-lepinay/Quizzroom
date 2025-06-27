@@ -11,5 +11,15 @@ export default function Home() {
     setGameStarted(true)
   }
 
-  return <main>{gameStarted ? <Game /> : <Lobby onStartGame={handleStartGame} />}</main>
+  const handleReset = () => {
+    setGameStarted(false)
+  }
+
+  return (
+    <main>
+      {gameStarted
+        ? <Game onResetGame={handleReset} />
+        : <Lobby onStartGame={handleStartGame} />}
+    </main>
+  )
 }

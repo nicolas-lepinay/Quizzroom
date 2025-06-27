@@ -32,7 +32,7 @@ export function Podium({ player, onNameChange, onScoreIncrease, showScoreButton 
   const displayName = name || `Buzzer no. ${player.id}`
 
   return (
-    <Card className="w-48 mx-4">
+    <Card className="w-48 mx-4 bg-white">
       <CardContent className="p-4 text-center">
         {/* Buzzer Button */}
         <Button

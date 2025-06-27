@@ -137,6 +137,19 @@ export const api = {
       console.warn("API unavailable, using default answer time (7s).")
       return 7000 // fallback valeur par défaut
     }
-  }
+  },
+
+  async stopGame(): Promise<any> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/game/stop`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      })
+      if (!response.ok) throw new Error("Failed to stop game")
+      return await response.json()
+    } catch (error) {
+      throw error
+    }
+  },
   
 }

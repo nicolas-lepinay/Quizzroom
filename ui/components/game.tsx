@@ -10,7 +10,11 @@ import type { Player, Question } from "@/types/game"
 import { api } from "@/lib/api"
 import { useSSE } from "@/hooks/use-sse"
 
-export function Game() {
+interface GameProps {
+    onResetGame: () => void
+  }
+
+export function Game({ onResetGame }: GameProps) {
   const [players, setPlayers] = useState<Player[]>([])
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null)
   const [answerTime, setAnswerTime] = useState(7000)
@@ -80,6 +84,15 @@ export function Game() {
     }
   }
 
+  const handleResetClick = async () => {
+    try {
+      await api.stopGame()
+      onResetGame()
+    } catch (e) {
+      alert("Impossible de réinitialiser la partie.")
+    }
+  }
+
   // Only use SSE if API is available
   useSSE(error ? "" : process.env.NEXT_PUBLIC_SSE_URL!, "playerUpdate", handlePlayerUpdate)
 
@@ -108,7 +121,7 @@ export function Game() {
 
         {/* Current Question */}
           <div className={currentQuestion && !showCountdown ? "opacity-100": "opacity-0"}>
-            <Card className="mb-8 bg-white text-black" >
+            <Card className="mb-8 bg-white text-white bg-opacity-30" >
               <CardContent className="p-6">
                 {/* <h2 className="text-2xl font-bold mb-4">Question:</h2> */}
                 <p className="text-xl mb-4">{currentQuestion?.text || "..."}</p>
@@ -151,6 +164,14 @@ export function Game() {
           </Button>
         </div>
       </div>
+
+        {/* Bouton RESET en bas à gauche */}
+        <Button
+            onClick={handleResetClick}
+            className="fixed bottom-6 left-20 bg-purple-600 hover:bg-purple-700 text-white text-sm z-50"
+        >
+            Stop
+        </Button>
     </div>
   )
 }

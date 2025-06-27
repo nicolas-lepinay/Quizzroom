@@ -3,6 +3,7 @@ package com.ynov.kiwi.cli.ui;
 import com.ynov.kiwi.cli.buzzer.*;
 import com.ynov.kiwi.cli.config.Config;
 import com.ynov.kiwi.cli.mqtt.MQTTService;
+import com.ynov.kiwi.cli.sse.SseClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 
 import javax.swing.*;
@@ -15,12 +16,14 @@ public class BuzzerApp {
     private final BuzzerManager manager = new BuzzerManager();
     private final JPanel buzzersPanel = new JPanel(new GridLayout(0, 1));
     private MQTTService mqttService;
+    private SseClient sseClient;
 
     public void createAndShowGUI() throws MqttException {
         mqttService = new MQTTService();
+        sseClient = new SseClient(Config.get("sse.url"));
 
         // Abonnements MQTT à enable/disable
-        subscribeToEnableDisable();
+        /* subscribeToEnableDisable(); */
 
         JFrame frame = new JFrame("Quizz Room");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -47,6 +50,37 @@ public class BuzzerApp {
         frame.add(buttonPanel, BorderLayout.SOUTH);
 
         frame.setVisible(true);
+
+        sseClient.setOnEnable(id -> {
+            manager.getBuzzerById(id).ifPresent(buzzer -> {
+                buzzer.setEnabled(true);
+                SwingUtilities.invokeLater(() -> {
+                    BuzzerPanel panel = getPanelByBuzzerId(id);
+                    if (panel != null) panel.setBuzzerEnabled(true);
+                });
+            });
+        });
+        sseClient.setOnDisable(id -> {
+            manager.getBuzzerById(id).ifPresent(buzzer -> {
+                buzzer.setEnabled(false);
+                SwingUtilities.invokeLater(() -> {
+                    BuzzerPanel panel = getPanelByBuzzerId(id);
+                    if (panel != null) panel.setBuzzerEnabled(false);
+                });
+            });
+        });
+        sseClient.start();
+
+        frame.addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent e) {
+                if (sseClient != null) {
+                    sseClient.stop();
+                    System.out.println("SSE client stopped.");
+                }
+                System.exit(0);
+            }
+        });
     }
 
     private BuzzerPanel addBuzzer() {
@@ -106,6 +140,8 @@ public class BuzzerApp {
                 .collect(Collectors.toList());
     }
 
+    // Remplacé par SSE
+    /*
     private void subscribeToEnableDisable() {
         try {
             String enableTopic = Config.get("mqtt.topic.enable");
@@ -140,6 +176,7 @@ public class BuzzerApp {
             JOptionPane.showMessageDialog(null, "Erreur abonnement MQTT : " + e.getMessage());
         }
     }
+    */
 
     private BuzzerPanel getPanelByBuzzerId(int id) {
         for (Component comp : buzzersPanel.getComponents()) {

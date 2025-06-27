@@ -11,7 +11,7 @@ public class MQTTService {
 		String broker = Config.get("mqtt.broker");
 		String username = Config.get("mqtt.username");
 		String password = Config.get("mqtt.password");
-		String clientId = "BuzzerApp-" + System.currentTimeMillis();
+		String clientId = "CLI_BuzzerApp-" + System.currentTimeMillis();
 
 		client = new MqttClient(broker, clientId, new MemoryPersistence());
 		MqttConnectOptions options = new MqttConnectOptions();

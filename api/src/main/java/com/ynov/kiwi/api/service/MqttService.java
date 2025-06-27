@@ -46,6 +46,8 @@ public class MqttService {
         });
     }
 
+    // Remplacé par du SSE (de l'API --> vers CLI Java Swing)
+    /*
     public void publishEnable(int playerId) {
         try {
             client.publish(mqttConfig.getEnableTopic(), new MqttMessage(String.valueOf(playerId).getBytes()));
@@ -63,5 +65,5 @@ public class MqttService {
             System.err.println("Erreur publish DISABLE: " + e.getMessage());
         }
     }
-
+    */
 }
