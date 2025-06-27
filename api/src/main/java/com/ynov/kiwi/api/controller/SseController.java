@@ -70,4 +70,18 @@ public class SseController {
             }
         }
     }
+
+    public void sendResetEvent() {
+        for (SseEmitter emitter : buzzerEmitters) {
+            try {
+                SseEmitter.SseEventBuilder event = SseEmitter.event()
+                        .name("reset")
+                        .data("");
+                emitter.send(event);
+            } catch (Exception e) {
+                emitter.completeWithError(e);
+            }
+        }
+    }
+
 }

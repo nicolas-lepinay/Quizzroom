@@ -22,9 +22,6 @@ public class BuzzerApp {
         mqttService = new MQTTService();
         sseClient = new SseClient(Config.get("sse.url"));
 
-        // Abonnements MQTT à enable/disable
-        /* subscribeToEnableDisable(); */
-
         JFrame frame = new JFrame("Quizz Room");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(500, 500);
@@ -69,6 +66,16 @@ public class BuzzerApp {
                 });
             });
         });
+        sseClient.setOnReset(() -> {
+            System.out.println("[SSE] Event reset reçu, suppression de tous les buzzers !");
+            manager.clear(); // Vide ta liste de buzzers
+            SwingUtilities.invokeLater(() -> {
+                buzzersPanel.removeAll();
+                buzzersPanel.revalidate();
+                buzzersPanel.repaint();
+            });
+        });
+
         sseClient.start();
 
         frame.addWindowListener(new java.awt.event.WindowAdapter() {

@@ -46,7 +46,7 @@ public class PlayerService {
     public boolean processBuzz(int playerId) {
         Player player = getPlayer(playerId).orElse(null);
         if (!gameStarted || player == null) return false;
-        if (!player.isEnabled()) return false; // déjà tenté ou buzzer désactivé
+        if (!player.isEnabled()) return false;
 
         // Désactive tous les buzzers
         for (Player p : repo.findAll()) {
@@ -102,6 +102,7 @@ public class PlayerService {
     public void stopGame() {
         this.gameStarted = false;
         repo.clear();
+        sseController.sendResetEvent();
         System.out.println("[Game] Partie arrêtée.");
     }
 

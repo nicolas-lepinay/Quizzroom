@@ -13,18 +13,15 @@ public class SseClient {
 
     private Consumer<Integer> onEnable;
     private Consumer<Integer> onDisable;
+    private Runnable onReset;
 
     public SseClient(String url) {
         this.url = url;
     }
 
-    public void setOnEnable(Consumer<Integer> onEnable) {
-        this.onEnable = onEnable;
-    }
-
-    public void setOnDisable(Consumer<Integer> onDisable) {
-        this.onDisable = onDisable;
-    }
+    public void setOnEnable(Consumer<Integer> onEnable) { this.onEnable = onEnable; }
+    public void setOnDisable(Consumer<Integer> onDisable) { this.onDisable = onDisable; }
+    public void setOnReset(Runnable onReset) { this.onReset = onReset; }
 
     public void start() {
         if (running) return;
@@ -79,14 +76,18 @@ public class SseClient {
 
     private void handleEvent(String event, String data) {
         try {
-            int id = Integer.parseInt(data);
             if ("enable".equals(event) && onEnable != null) {
+                int id = Integer.parseInt(data);
                 onEnable.accept(id);
             } else if ("disable".equals(event) && onDisable != null) {
+                int id = Integer.parseInt(data);
                 onDisable.accept(id);
+            } else if ("reset".equals(event) && onReset != null) {
+                onReset.run();
             }
         } catch (Exception e) {
             System.err.println("[SSE] Malformed event/data: event=" + event + ", data=" + data);
         }
     }
+
 }
