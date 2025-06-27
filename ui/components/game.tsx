@@ -13,19 +13,15 @@ import { useSSE } from "@/hooks/use-sse"
 export function Game() {
   const [players, setPlayers] = useState<Player[]>([])
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null)
+  const [answerTime, setAnswerTime] = useState(7000)
   const [showAnswer, setShowAnswer] = useState(false)
   const [showCountdown, setShowCountdown] = useState(true)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [isApiAvailable, setIsApiAvailable] = useState(true)
 
   const fetchPlayers = useCallback(async () => {
     try {
       const response = await api.getPlayers()
-
-      if (response.message.includes("Mock data")) {
-        setIsApiAvailable(false)
-      }
 
       if (response.status === "success" && Array.isArray(response.data)) {
         setPlayers(response.data)
@@ -53,13 +49,6 @@ export function Game() {
     fetchPlayers()
   }, [fetchPlayers])
 
-  // Only use SSE if API is available
-  useSSE(isApiAvailable ? process.env.NEXT_PUBLIC_SSE_URL! : "", "playerUpdate", handlePlayerUpdate)
-
-  useEffect(() => {
-    fetchPlayers()
-  }, [fetchPlayers])
-
   const handleCountdownComplete = () => {
     setShowCountdown(false)
     fetchCurrentQuestion()
@@ -68,12 +57,6 @@ export function Game() {
   const handleScoreIncrease = async (playerId: number) => {
     try {
       await api.updatePlayerScore(playerId)
-      // In demo mode, manually update the score since SSE won't work
-      if (!isApiAvailable) {
-        setPlayers((prev) =>
-          prev.map((player) => (player.id === playerId ? { ...player, score: player.score + 1 } : player)),
-        )
-      }
     } catch (error) {
       console.error("Error updating player score:", error)
     }
@@ -97,6 +80,19 @@ export function Game() {
     }
   }
 
+  // Only use SSE if API is available
+  useSSE(error ? "" : process.env.NEXT_PUBLIC_SSE_URL!, "playerUpdate", handlePlayerUpdate)
+
+  useEffect(() => {
+    fetchPlayers()
+  }, [fetchPlayers])
+
+  useEffect(() => {
+    api.getAnswerTime().then(setAnswerTime)
+  }, [])
+
+
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-900 to-purple-900 text-white">
       {showCountdown && <Countdown onComplete={handleCountdownComplete} />}
@@ -104,17 +100,9 @@ export function Game() {
       <div className="container mx-auto px-4 py-8">
         {/* <h1 className="text-4xl font-bold text-center mb-8 text-yellow-400">Question Pour Un Champion</h1> */}
 
-        {!isApiAvailable && (
-          <Alert className="mb-4 bg-yellow-100 border-yellow-400">
-            <AlertDescription className="text-yellow-800">
-              Demo Mode: API server not available. Using mock data for demonstration.
-            </AlertDescription>
-          </Alert>
-        )}
-
         {error && (
           <Alert className="mb-4 bg-red-100 border-red-400">
-            <AlertDescription className="text-red-800">{error}</AlertDescription>
+            <AlertDescription className="text-red-800 text-center">{error}</AlertDescription>
           </Alert>
         )}
 
@@ -142,7 +130,13 @@ export function Game() {
         {/* Players Podiums */}
         <div className="flex justify-center items-center flex-wrap gap-4 mb-8">
           {players.map((player) => (
-            <Podium key={player.id} player={player} onScoreIncrease={handleScoreIncrease} showScoreButton={true} />
+            <Podium 
+                key={player.id} 
+                player={player} 
+                answerTime={answerTime}
+                onScoreIncrease={handleScoreIncrease} 
+                showScoreButton={true} 
+            />
           ))}
         </div>
 

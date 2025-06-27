@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
+import { CountdownInline } from "./countdown-inline"
 import type { Player } from "@/types/game"
 
 interface PodiumProps {
@@ -11,9 +12,10 @@ interface PodiumProps {
   onNameChange?: (playerId: number, name: string) => void
   onScoreIncrease?: (playerId: number) => void
   showScoreButton?: boolean
+  answerTime?: number // en ms
 }
 
-export function Podium({ player, onNameChange, onScoreIncrease, showScoreButton = false }: PodiumProps) {
+export function Podium({ player, onNameChange, onScoreIncrease, showScoreButton = false, answerTime = 7000 }: PodiumProps) {
   const [name, setName] = useState(player.givenName || "")
 
   const getBuzzerColor = () => {
@@ -37,8 +39,19 @@ export function Podium({ player, onNameChange, onScoreIncrease, showScoreButton 
           className={`w-24 h-24 rounded-full text-white font-bold text-lg mb-4 ${getBuzzerColor()}`}
           disabled={!player.enabled}
         >
-          BUZZ
+          {player.inControl ? 
+            (<CountdownInline 
+                duration={answerTime} 
+                running={player.inControl} 
+                trigger={player.inControl ? player.id + "-on" : player.id + "-off"} 
+            />) 
+            : 
+            "Buzzer"
+          }
         </Button>
+
+        {/* Affichage du timer si le joueur a la main */}
+        
 
         {/* Name Input or Display */}
         {onNameChange ? (

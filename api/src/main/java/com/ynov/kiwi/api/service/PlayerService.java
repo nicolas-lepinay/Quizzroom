@@ -46,7 +46,7 @@ public class PlayerService {
     public boolean processBuzz(int playerId) {
         Player player = getPlayer(playerId).orElse(null);
         if (!gameStarted || player == null) return false;
-        if (player.hasAttempted() || !player.isEnabled()) return false; // déjà tenté ou buzzer désactivé
+        if (!player.isEnabled()) return false; // déjà tenté ou buzzer désactivé
 
         // Désactive tous les buzzers
         for (Player p : repo.findAll()) {
@@ -55,7 +55,7 @@ public class PlayerService {
         }
         // Le joueur a répondu :
         player.setInControl(true);
-        player.setHasAttempted(true);
+        //player.setHasAttempted(true);
         sseController.sendPlayerUpdate(); // Sends update to front-end
 
         scheduler.schedule(() -> endTurn(player.getId()), answerTime, TimeUnit.MILLISECONDS);
@@ -63,7 +63,7 @@ public class PlayerService {
     }
 
     private void endTurn(int playerId) {
-        // On réactive seulement les joueurs qui n'ont pas encore tenté
+        // On réactive seulement les autres joueurs que PlayerId
         for (Player p : repo.findAll()) {
             p.setInControl(false);
             if (p.getId() != playerId) {
@@ -76,7 +76,7 @@ public class PlayerService {
 
     public void resetBuzzers() {
         for (Player p : repo.findAll()) {
-            p.setHasAttempted(false);
+            //p.setHasAttempted(false);
             p.setEnabled(true);
             p.setInControl(false);
             mqttService.publishEnable(p.getId());

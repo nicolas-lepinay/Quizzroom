@@ -123,4 +123,20 @@ export const api = {
       throw new Error("API not available.")
     }
   },
+
+  async getAnswerTime(): Promise<number> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/game/answer-time`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      })
+      if (!response.ok) throw new Error("Failed to fetch answer time")
+      const json = await response.json()
+      return typeof json.data === "number" ? json.data : 7000
+    } catch (e) {
+      console.warn("API unavailable, using default answer time (7s).")
+      return 7000 // fallback valeur par défaut
+    }
+  }
+  
 }
